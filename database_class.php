@@ -69,7 +69,7 @@ class DataBase
         foreach ($new_values as $field => $value) $query .= "`" . $field . "`,";
         $query = substr($query, 0, -1); /*Обрезать последнюю запятую*/
         $query .= ") VALUES (";
-        foreach ($new_values as $value) $query .= "'" . addcslashes($value) . "',";
+        foreach ($new_values as $value) $query .= "'" . addslashes($value) . "',";
         $query = substr($query, 0, -1);
         $query .= ")";
         return $this->query($query);
@@ -79,7 +79,7 @@ class DataBase
     {
         $table_name = $this->config->db_prefix . $table_name;
         $query = "UPDATE $table_name SET";
-        foreach ($upd_fields as $field => $value) $query .= "`$field` = '" . addcslashes($value) . "',";
+        foreach ($upd_fields as $field => $value) $query .= "`$field` = '" . addslashes($value) . "',";
        $query = substr($query, 0, -1);
         if ($where)
         {
@@ -108,7 +108,7 @@ class DataBase
     public function getField ($table_name, $field_out, $field_in, $value_in)
     {
     /*Это поле должно быть уникальным*/
-        $data = $this->select ($table_name, array($field_out), "`$field_in` = '" . addcslashes($value_in) . "'"); /* "`$field_in` = '" . addcslashes($value_in) . "'" - это WHERE. $data - двумерный массив со всеми данными*/
+        $data = $this->select ($table_name, array($field_out), "`$field_in` = '" . addslashes($value_in) . "'"); /* "`$field_in` = '" . addcslashes($value_in) . "'" - это WHERE. $data - двумерный массив со всеми данными*/
         if (count($data) != 1) return false;
         return $data[0][$field_out];
     }
@@ -121,6 +121,11 @@ class DataBase
             return false;
         }
         return$this->getField($table_name, $field_out, "id", $id);
+    }
+/*Получает все записи по определенному полю*/
+    public function getAllOnField($table_name, $field, $value, $order, $up)
+    {
+        return $this->select($table_name, array("*"), "`$field` = '" . addslashes($value) . "'", $order, $up);
     }
 /*Получение всех записей из таблицы*/
     public function getAll($table_name, $order, $up)
@@ -139,7 +144,7 @@ class DataBase
 /*Изменить значение определенного поля*/
     public function setField ($table_name, $field, $value, $field_in, $value_in)
     {
-        return $this->update($table_name, array($field => $value), "`$field_in` = '" . addcslashes($value_in) . "' ");
+        return $this->update($table_name, array($field => $value), "`$field_in` = '" . addslashes($value_in) . "' ");
     }
 /*То же по id*/
     public function setFieldOnID ($table_name, $id, $field, $value)
@@ -174,7 +179,7 @@ class DataBase
 /*Проверка на существование определенной записи в некоторой таблице*/
     public function isExists ($table_name, $field, $value)
     {
-        $data = $this->select($table_name, array("id"), "`$field` = '" . addcslashes($value) . "'");
+        $data = $this->select($table_name, array("id"), "`$field` = '" . addslashes($value) . "'");
         if (count($data) === 0) return false;
         return true;
     }
@@ -183,7 +188,7 @@ class DataBase
     {
         if (!$this->valid->validID($id)) return false;
     /*Получаем запись*/
-        $data = $this->select($table_name, array("id"), "`id` = '" . addcslashes($id) . "'");
+        $data = $this->select($table_name, array("id"), "`id` = '" . addslashes($id) . "'");
         if (count($data) === 0) return false;
         return true;
     }
@@ -193,6 +198,11 @@ class DataBase
         $data = $this->select($table_name, array("id"));
         $last = array_pop($data);
         return $last["id"];
+    }
+    public function getLastID ($table_name)
+    {
+        $data = $this->select($table_name, array("MAX(`id`)"));
+        return $data[0]["MAX(`id`)"];
     }
 /*Максимальное значение у заданного поля в заданной табилице*/
     public function getMax ($table_name, $field)
